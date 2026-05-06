@@ -27,52 +27,23 @@ public class PessoaService {
         return pessoaRepository.findById(id);
     }
 
-    // public Pessoa create(Pessoa pessoa) {
-
-    //     String cepLimpo = pessoa.getCep().replace("-", "");
-
-    //     ViaCepResponse endereco = viaCepService.buscarCep(cepLimpo);
-
-    //     if (endereco == null || endereco.getCep() == null) {
-    //         throw new RuntimeException("CEP inválido ou não encontrado");
-    //     }
-
-    //     pessoa.setCep(endereco.getCep());
-    //     pessoa.setLogradouro(endereco.getLogradouro());
-    //     pessoa.setComplemento(endereco.getComplemento());
-    //     pessoa.setBairro(endereco.getBairro());
-    //     pessoa.setCidade(endereco.getLocalidade());
-    //     pessoa.setUf(endereco.getUf());
-
-    //     return pessoaRepository.save(pessoa);
-    // }
-
-    private void preencherEndereco(Pessoa pessoa, ViaCepResponse endereco) {
-        pessoa.setCep(endereco.getCep());
-        pessoa.setLogradouro(endereco.getLogradouro());
-        pessoa.setComplemento(endereco.getComplemento());
-        pessoa.setBairro(endereco.getBairro());
-        pessoa.setCidade(endereco.getLocalidade());
-        pessoa.setUf(endereco.getUf());
-    }
-
     public Pessoa create(Pessoa pessoa) {
 
-    if (pessoa.getCep() == null || pessoa.getCep().isEmpty()) {
-        throw new RuntimeException("CEP é obrigatório");
-    }
+        if (pessoa.getCep() == null || pessoa.getCep().isEmpty()) {
+            throw new RuntimeException("CEP é obrigatório");
+        }
 
-    String cepLimpo = pessoa.getCep().replace("-", "");
+        String cepLimpo = pessoa.getCep().replace("-", "");
 
-    ViaCepResponse endereco = viaCepService.buscarCep(cepLimpo);
+        ViaCepResponse endereco = viaCepService.buscarCep(cepLimpo);
 
-    if (endereco == null || Boolean.TRUE.equals(endereco.getErro())) {
-        throw new RuntimeException("CEP inválido ou não encontrado");
-    }
+        if (endereco == null || Boolean.TRUE.equals(endereco.getErro())) {
+            throw new RuntimeException("CEP inválido ou não encontrado");
+        }
 
-    preencherEndereco(pessoa, endereco);
+        preencherEndereco(pessoa, endereco);
 
-    return pessoaRepository.save(pessoa);
+        return pessoaRepository.save(pessoa);
     }
 
     public Optional<Pessoa> update(long id, Pessoa newPessoa) {
@@ -86,18 +57,14 @@ public class PessoaService {
             if (newPessoa.getCep() != null && !newPessoa.getCep().isEmpty()) {
 
                 String cepLimpo = newPessoa.getCep().replace("-", "");
+
                 ViaCepResponse endereco = viaCepService.buscarCep(cepLimpo);
 
-                if (endereco == null || endereco.getCep() == null) {
+                if (endereco == null || Boolean.TRUE.equals(endereco.getErro())) {
                     throw new RuntimeException("CEP inválido");
                 }
 
-                pessoa.setCep(endereco.getCep());
-                pessoa.setLogradouro(endereco.getLogradouro());
-                pessoa.setComplemento(endereco.getComplemento());
-                pessoa.setBairro(endereco.getBairro());
-                pessoa.setCidade(endereco.getLocalidade());
-                pessoa.setUf(endereco.getUf());
+                preencherEndereco(pessoa, endereco);
             }
 
             return Optional.of(pessoaRepository.save(pessoa));
@@ -115,5 +82,14 @@ public class PessoaService {
         }
 
         return false;
+    }
+
+    private void preencherEndereco(Pessoa pessoa, ViaCepResponse endereco) {
+        pessoa.setCep(endereco.getCep());
+        pessoa.setLogradouro(endereco.getLogradouro());
+        pessoa.setComplemento(endereco.getComplemento());
+        pessoa.setBairro(endereco.getBairro());
+        pessoa.setCidade(endereco.getLocalidade());
+        pessoa.setUf(endereco.getUf());
     }
 }
